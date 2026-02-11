@@ -4,19 +4,21 @@
 
 An intelligent, multi-agent AI system that empowers non-technical business leaders to query sales databases using natural language. Built for Cycle Craft Georgia to bridge the gap between business insights and data analysis.
 
+---
+
 ## Table of Contents
 
-- [About Cycle Craft Georgia]
-- [Business Challenges]
-- [System Overview]
-- [Features]
-- [Architecture]
-- [Installation]
-- [Usage]
-- [Technical Requirements]
-- [Project Timeine]
-- [Testing]
-- [Future Enhancements]
+- [About Cycle Craft Georgia] (#about-cycle-craft-georgia)
+- [Business Challenges] (#business-challenges)
+- [System Overview] (#system-overview)
+- [Features] (#features)
+- [Architecture] (#architecture)
+- [Installation] (#installation)
+- [Usage] (#usage)
+- [Technical Requirements] (#technical-requirements)
+- [Project Timeine] (#project-timeline)
+- [Testing] (#testing)
+- [Future Enhancements] (#future-enhancements)
 
 ---
 
