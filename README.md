@@ -35,6 +35,8 @@ Founded in 2008 by **Sarah Chen**, a former competitive cyclist, Cycle Craft Geo
 
 Today, Cycle Craft Georgia operates multiple locations, each acting as a local gathering place for cyclists from historic Savannah to bustling Atlanta and the rolling hills of Athens.
 
+---
+
 ## Business Challenge
 
 ### The Problem
