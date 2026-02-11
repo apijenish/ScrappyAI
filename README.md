@@ -70,7 +70,7 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
 
 ## Features 
 ### Core Capabilities
-** Natural Lanaguage Processing**
+**Natural Lanaguage Processing**
 - Accept business questions in plain English
 - Interpre user intent and identify key metrics
 - Maintain conversational context for follow-up questions
