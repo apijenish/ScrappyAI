@@ -6,6 +6,6 @@ class InvestigationAgents:
         pass
 
     def intent_agent(self, state:InvestigationState)-> InvestigationState:
-        
+        pass
 
 
