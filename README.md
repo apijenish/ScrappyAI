@@ -113,6 +113,7 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
   - **Agent Framework**: LangGraph
   - **Frontend**: Streamlit
   - **Database**: MySQL
+  - **LLM Engine**: Ollama
   - **Version Control**: Github
  
 ---
