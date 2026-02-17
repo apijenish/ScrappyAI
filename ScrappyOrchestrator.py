@@ -49,9 +49,6 @@ class ScrappyInvestigationWorkflow:
         workflow.add_edge("query_builder", "explainer")
         workflow.add_edge("explainer", END)
 
-
-        app = workflow.compile()
-
         return workflow.compile()
 
       
