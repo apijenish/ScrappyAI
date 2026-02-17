@@ -1,6 +1,6 @@
 # Scrappy Market: Agentic AI System
 
-**Version 1.0** | February 10th, 2026
+**Version 1.1** | February 15th, 2026
 
 An intelligent, multi-agent AI system that empowers non-technical business leaders to query sales databases using natural language. Built for Cycle Craft Georgia to bridge the gap between business insights and data analysis.
 
@@ -113,6 +113,7 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
   - **Agent Framework**: LangGraph
   - **Frontend**: Streamlit
   - **Database**: MySQL
+  - **LLM Engine**: Ollama
   - **Version Control**: Github
  
 ---
