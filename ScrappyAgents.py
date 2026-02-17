@@ -1,6 +1,7 @@
 from StateDefinition import InvestigationState
 
-class InvestigationAgents:
+
+class ScrappyInvestigationAgents:
 
     def __init__(self):
         pass
@@ -19,5 +20,4 @@ class InvestigationAgents:
 
     def summary_agent(self, state:InvestigationState)->InvestigationState:
         pass
-
 
