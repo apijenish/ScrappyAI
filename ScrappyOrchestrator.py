@@ -52,6 +52,6 @@ class ScrappyInvestigationWorkflow:
 
         app = workflow.compile()
 
-        return app 
+        return workflow.compile()
 
       
