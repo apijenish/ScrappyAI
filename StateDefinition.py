@@ -31,5 +31,6 @@ class InvestigationState(TypedDict):
     # Metadata
     messages: NotRequired[Annotated[list, operator.add]]  # Conversation history
     current_agent: NotRequired[str]
+    notebook:NotRequired[str]
 
 

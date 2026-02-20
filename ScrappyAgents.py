@@ -1,4 +1,5 @@
 from StateDefinition import InvestigationState
+from AgentPrompts import ScrappyAgentsPrompts
 
 
 class ScrappyInvestigationAgents:
@@ -7,7 +8,16 @@ class ScrappyInvestigationAgents:
         pass
 
     def intent_agent(self, state:InvestigationState)-> InvestigationState:
-        pass
+        
+        #Get the Intent Agent prompt
+        question = ScrappyAgentsPrompts.IntentAgentPrompt(state)
+        print(question)
+
+        #Test the state
+        state['notebook'] = "Jenish"
+
+        return state
+
 
     def planner_agent(self, state:InvestigationState)->InvestigationState:
         pass

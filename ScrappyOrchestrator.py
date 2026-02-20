@@ -29,7 +29,6 @@ class ScrappyOrchestrator:
 
 class ScrappyInvestigationWorkflow:
 
-
     @staticmethod
     def init_agents():
         agents = ScrappyInvestigationAgents()
