@@ -1,20 +1,23 @@
 from state import ScrappyInvestigationState
 from prompts import ScrappyAgentPrompt
+from engine import ScrappyReasonEngine
 
 
 class ScrappyInvestigationAgent:
 
     def __init__(self):
-        pass
+        self.engine = ScrappyReasonEngine()
 
     def intent_agent(self, state:ScrappyInvestigationState)-> ScrappyInvestigationState:
         
         #Get the Intent Agent prompt
-        question = ScrappyAgentPrompt.IntentAgentPrompt(state)
-        print(question)
+        prompt = ScrappyAgentPrompt.IntentAgentPrompt(state)
+        result = self.engine.invoke_llm(prompt)
 
-        #Test the state
-        state['notebook'] = "Jenish"
+        #Update the state
+        state['question_type']=result.get("question_type")
+        state['metrics_mentioned'] = result.get("metrics_mentioned")
+        state['dimensions']=result.get("dimensions")
 
         return state
 

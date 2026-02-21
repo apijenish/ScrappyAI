@@ -1,11 +1,11 @@
 from langchain_core.messages import HumanMessage
-from workflow import ScrappyInvestigationWorkflow
+from workflow import create_workflow
 
 
 class ScrappyOrchestrator:
     
     def __init__(self):
-        self.graph = ScrappyInvestigationWorkflow.init_agents()
+        self.graph = create_workflow()
 
     def investigate(self, question:str)->dict:
         

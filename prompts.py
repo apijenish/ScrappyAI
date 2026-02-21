@@ -2,10 +2,15 @@ from state import ScrappyInvestigationState
 
 class ScrappyAgentPrompt:
 
-    def IntentAgentPrompt(state:ScrappyInvestigationState)->str:
+    def IntentAgentPrompt(state:ScrappyInvestigationState):
 
         question = state['question']
-        _intentAgentPrompt =f"""Analyze this business question and extract key information.
-        Question: {question}"""
-
-        return _intentAgentPrompt
+        return f"""Analyze this business question and extract key information.
+        Question: {question}
+        You must respond with ONLY a valid JSON object. No explanation, no markdown, 
+        no extra text — just the raw JSON object.
+        {{
+            "question_type": "...",
+            "metrics_mentioned": [],
+            "dimensions": []
+        }}"""
