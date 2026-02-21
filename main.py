@@ -1,4 +1,4 @@
-from ScrappyOrchestrator import ScrappyOrchestrator
+from orchestrator import ScrappyOrchestrator
 
 scrappyOrchestrator = ScrappyOrchestrator()
 

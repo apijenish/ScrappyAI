@@ -1,7 +1,7 @@
 from typing_extensions import TypedDict, NotRequired, Annotated
 import operator
 
-class InvestigationState(TypedDict):
+class ScrappyInvestigationState(TypedDict):
 
     """
     State that flows through the entire agent workflow

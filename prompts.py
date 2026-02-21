@@ -1,8 +1,8 @@
-from StateDefinition import InvestigationState
+from state import ScrappyInvestigationState
 
-class ScrappyAgentsPrompts:
+class ScrappyAgentPrompt:
 
-    def IntentAgentPrompt(state:InvestigationState)->str:
+    def IntentAgentPrompt(state:ScrappyInvestigationState)->str:
 
         question = state['question']
         _intentAgentPrompt =f"""Analyze this business question and extract key information.
