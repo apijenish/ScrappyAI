@@ -11,8 +11,8 @@ class ScrappyReasonEngine:
 
     def invoke_llm(self, prompt):
         response = self.llm.invoke(prompt)
-        pasrsed = self._extract_json(response.content)
-        return pasrsed
+        parsed = self._extract_json(response.content)
+        return parsed
 
     # Helper methods
     def _extract_json(self, text: str) -> dict:
@@ -30,5 +30,4 @@ class ScrappyReasonEngine:
 
 
 
-
-    
+ 

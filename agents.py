@@ -3,6 +3,7 @@ from prompts import ScrappyAgentPrompt
 from engine import ScrappyReasonEngine
 
 
+
 class ScrappyInvestigationAgent:
 
     def __init__(self):

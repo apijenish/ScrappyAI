@@ -14,3 +14,16 @@ class ScrappyAgentPrompt:
             "metrics_mentioned": [],
             "dimensions": []
         }}"""
+
+    def PlannerAgentPrompt(state:ScrappyInvestigationState):
+        pass
+    
+    def QueryBuilderAgentPrompt(state:ScrappyInvestigationState):
+        pass
+
+    def DataRetrievalAgentPrompt(state:ScrappyInvestigationState):
+        pass
+
+    def SummaryAgentPrompt(state:ScrappyInvestigationState):
+        pass
+
