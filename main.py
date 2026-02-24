@@ -10,5 +10,7 @@ print(result['question_type'])
 print(result['metrics_mentioned'])
 print(result['dimensions'])
 
+for sql in result['generated_queries']:
+    print(sql['query'])
 
 print("Done") 

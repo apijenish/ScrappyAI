@@ -24,10 +24,25 @@ class ScrappyInvestigationAgent:
 
 
     def planner_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
-        pass
+        prompt = ScrappyAgentPrompt.PlannerAgentPrompt(state)
+        result = self.engine.invoke_llm(prompt)
+
+        state['investigation_steps']=result.get("investigation_steps")
+        state['focus_areas']=result.get("focus_areas")
+
+        return state
 
     def query_builder_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
-        pass
+        prompt = ScrappyAgentPrompt.QueryBuilderAgentPrompt(state)
+        result = self.engine.invoke_llm(prompt)
+
+        for sql in result['sql_queries']:
+            print(sql["query"])
+
+        print(result)
+
+        state['generated_queries'].extend(result['sql_queries'])
+        return state
 
     def data_retrieval_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
         pass
