@@ -6,6 +6,7 @@ class ScrappyAgentPrompt:
 
         question = state['question']
         return f"""
+
         Analyze this business question and extract key information needed to query a retail database.
         Question: "{question}"
         Return ONLY a valid JSON object.
@@ -15,9 +16,9 @@ class ScrappyAgentPrompt:
         - All values must be valid JSON types: string, number, array, object, or boolean
         {{
             "question_type": "the type of analysis being requested",
-            "metrics_mentioned": "list of business metrics referenced in the question",
-            "dimensions": "list of analytical dimensions relevant to the question",
-            "tables_needed": "list of database tables required to answer the question"
+            "metrics_mentioned": "Business metrics referenced in the question",
+            "dimensions": "Analytical dimensions relevant to the question",
+            "tables_needed": "Database tables required to answer the question"
         }}
         """
 
@@ -32,7 +33,7 @@ class ScrappyAgentPrompt:
         Metrics: {state['metrics_mentioned']}
         Dimensions: {state['dimensions']}
 
-        Generate 3-4 logical investigation steps that progressively drill deeper into the problem.
+        Generate 1 logical investigation steps that progressively drill deeper into the problem.
         Each step should build on the previous one.
 
         Return ONLY a JSON object with these fields:
@@ -52,7 +53,17 @@ class ScrappyAgentPrompt:
 
         return f"""
         
-        Below is the database schema.
+OUTPUT:
+=======
+Generate a MySQL query for the following investigation steps:
+
+investigation_steps: {state['investigation_steps']}
+focus:{state['focus_areas']}
+
+Return ONLY a single SIMPLE SQL query with no explanation, no markdown, no semicolon in JSON Format. Do not wrap the response in markdown code blocks.
+{{
+    sql_queries:[]
+}}
 
 SCHEMA:
 =======
@@ -109,18 +120,6 @@ RELATIONSHIPS:
 - sales_fact connects to stores, products, and calendar_dim via foreign keys
 - inventory_snapshots connects to stores, products, and calendar_dim via foreign keys
 - promotions connects to products via product_id
-
-OUTPUT:
-=======
-Generate a MySQL query for the following investigation steps:
-
-investigation_steps: {state['investigation_steps']}
-focus:{state['focus_areas']}
-
-Return ONLY the SQL query in json format. Do not wrap the response in markdown code blocks.
-{{
-    sql_queries:[]
-}}
 
 """
         

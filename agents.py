@@ -45,7 +45,31 @@ class ScrappyInvestigationAgent:
         return state
 
     def data_retrieval_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
-        pass
+        query_results = []
+
+        for sql_item in state.get('generated_queries', []):
+            query = sql_item.get("query", "")
+            label = sql_item.get("label", "Query")
+
+            print(f"\n[DataRetrieval] Running: {label}")
+            print(f"{query}")
+            result = self.engine.execute_sql(query)
+
+            query_results.append({
+                "label": label,
+                "query": query,
+                "columns": result["columns"],
+                "rows": result["rows"],       # list of dicts
+                "error": result["error"],
+            })
+
+            if result["error"]:
+                print(f"SQL Error: {result['error']}")
+            else:
+                print(f"Returned {len(result['rows'])} rows")
+
+        state['query_results'] = query_results
+        return state
 
     def summary_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
         pass

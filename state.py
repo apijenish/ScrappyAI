@@ -23,6 +23,9 @@ class ScrappyInvestigationState(TypedDict):
     # Query Builder outputs
     generated_queries: NotRequired[Annotated[list[dict], operator.add]]  # Accumulate queries
     sql_query:NotRequired[list[str]]
+
+    # Data Retrieval outputs  ← NEW
+    query_results: NotRequired[list[dict]]  # [{label, query, columns, rows, error}]
     
     # Explainer outputs
     summary: NotRequired[str]
