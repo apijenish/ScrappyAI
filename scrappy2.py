@@ -89,6 +89,9 @@ if prompt := st.chat_input("Enter your business question here..."):
         
         st.info(f"Focus areas identified: {', '.join(final_state.get('focus_areas', []))}")
 
+        st.markdown("### 📊 Summary")
+        
+
     # Save assistant response summary to history
     st.session_state.all_chats[st.session_state.current_chat].append({
         "role": "assistant", 
