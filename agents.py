@@ -20,6 +20,12 @@ class ScrappyInvestigationAgent:
         state['metrics_mentioned'] = result.get("metrics_mentioned")
         state['dimensions']=result.get("dimensions")
 
+        print("Intent Agent")
+
+        print(state["question_type"])
+        print(state["metrics_mentioned"])
+        print(state["dimensions"])
+
         return state
 
 
@@ -30,18 +36,30 @@ class ScrappyInvestigationAgent:
         state['investigation_steps']=result.get("investigation_steps")
         state['focus_areas']=result.get("focus_areas")
 
+        print("Planner Agent")
+
+        print(state["investigation_steps"])
+        print(state["focus_areas"])
+
         return state
 
     def query_builder_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
-        prompt = ScrappyAgentPrompt.QueryBuilderAgentPrompt(state)
-        result = self.engine.invoke_llm(prompt)
 
-        for sql in result['sql_queries']:
-            print(sql["query"])
+        state['generated_queries'] = []
+
+        for step in state.get("investigation_steps",[]):
+            
+            prompt = ScrappyAgentPrompt.QueryBuilderAgentPrompt(state, step)
+            result = self.engine.invoke_llm(prompt)
+            state['generated_queries'].append(result)
+
+
+        for sql in state['generated_queries']:
+            print(sql)
 
         print(result)
 
-        state['generated_queries'].extend(result['sql_queries'])
+        
         return state
 
     def data_retrieval_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
