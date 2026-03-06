@@ -21,7 +21,7 @@ class ScrappyInvestigationState(TypedDict):
     focus_areas: NotRequired[list[str]]
     
     # Query Builder outputs
-    generated_queries: NotRequired[Annotated[list[dict], operator.add]]  # Accumulate queries
+    generated_queries: NotRequired[list[dict]]  # Accumulate queries
     sql_query:NotRequired[list[str]]
 
     # Data Retrieval outputs  ← NEW
