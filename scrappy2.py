@@ -85,6 +85,7 @@ if prompt := st.chat_input("Enter your business question here..."):
         queries = final_state.get('generated_queries', [])
         if queries:
             for q in queries:
+                st.write(q.get('label','No Label'))
                 st.code(q.get('query', '-- No query available'), language="sql")
         
         st.info(f"Focus areas identified: {', '.join(final_state.get('focus_areas', []))}")
