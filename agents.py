@@ -52,11 +52,17 @@ class ScrappyInvestigationAgent:
 
         state['generated_queries'] = []
 
-        for step in state.get("investigation_steps",[]):
+        validation_errors = state.get('validation_errors',[])
+
+        if validation_errors:
+            print("there are few errors")
+
+        else:
             
-            prompt = ScrappyAgentPrompt.QueryBuilderAgentPrompt(state, step)
-            result = self.engine.invoke_llm(prompt)
-            state['generated_queries'].append(result)
+            for step in state.get("investigation_steps",[]):           
+                prompt = ScrappyAgentPrompt.QueryBuilderAgentPrompt(state, step)
+                result = self.engine.invoke_llm(prompt)
+                state['generated_queries'].append(result)
 
 
         for sql in state['generated_queries']:
@@ -66,10 +72,33 @@ class ScrappyInvestigationAgent:
 
         
         return state
+    
+    def validator_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
+        print("Validator Agent")
+        print("***************************")
+
+        validation_errors=[]
+
+        for sql_item in state.get('generated_queries',[]):
+            query = sql_item.get("query", "")
+            label = sql_item.get("label", "Query")
+
+            result = self.engine.execute_sql(query)
+
+            if result.get('error'):
+                validation_errors.append({'label':label,
+                                          'query':query,
+                                          'error':result.get('error')})
+                
+        state["validation_error"]=validation_errors
+
+        return state
+
 
     def data_retrieval_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
 
         print("Data Retrieval Agent")
+
         print("***************************")
         query_results = []
 
@@ -85,7 +114,7 @@ class ScrappyInvestigationAgent:
                 "label": label,
                 "query": query,
                 "columns": result["columns"],
-                "rows": result["rows"],       # list of dicts
+                "rows": result["rows"],      
                 "error": result["error"],
             })
 
@@ -97,6 +126,10 @@ class ScrappyInvestigationAgent:
         state['query_results'] = query_results
         return state
 
-    def summary_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
-        pass
+    def summary_agent(self, state: ScrappyInvestigationState) -> ScrappyInvestigationState:
+        prompt = ScrappyAgentPrompt.SummaryAgentPrompt(state)
+        result = self.engine.invoke_llm(prompt)
+        state['summary'] = result.get("summary", "No summary available.")
+        state['next_steps'] = result.get("next_steps", [])
+        return state
 

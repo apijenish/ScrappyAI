@@ -24,6 +24,10 @@ class ScrappyInvestigationState(TypedDict):
     generated_queries: NotRequired[list[dict]]  # Accumulate queries
     sql_query:NotRequired[list[str]]
 
+    # Validator output
+    retry_count:NotRequired[int]
+    validation_errors:NotRequired[list[dict]]
+
     # Data Retrieval outputs  ← NEW
     query_results: NotRequired[list[dict]]  # [{label, query, columns, rows, error}]
     

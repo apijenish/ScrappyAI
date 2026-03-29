@@ -109,13 +109,28 @@ The query must be a single line with no newlines or indentation:
 
 {{"label": "{step['label']}", "query": "SELECT ... FROM ... WHERE ..."}}
 
-"""
-
-        
+"""        
 
     def DataRetrievalAgentPrompt(state:ScrappyInvestigationState):
         pass
 
-    def SummaryAgentPrompt(state:ScrappyInvestigationState):
-        pass
+    def SummaryAgentPrompt(state: ScrappyInvestigationState):
+        results_text = ""
+        for r in state.get("query_results", []):
+            results_text += f"\n{r['label']}: {len(r['rows'])} rows returned."
+            if r['error']:
+                results_text += f" (Error: {r['error']})"
+
+        return f"""You are a business analyst summarizing data investigation results.
+
+Original question: "{state.get('question')}"
+Data gathered: {results_text}
+
+Return ONLY a JSON object:
+{{
+    "summary": "2-3 sentence plain English answer to the original question",
+    "next_steps": ["follow-up action 1", "follow-up action 2"]
+}}"""
+
+        
 

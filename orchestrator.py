@@ -14,7 +14,9 @@ class ScrappyOrchestrator:
             "question":question,
             "messages":[HumanMessage(content=question)],
             "generated_queries":[],
-            "current_agent":"intent"
+            "current_agent":"intent",
+            "retry_count":0,
+            "validation_errors":[]
         }
 
         #Run the graph

@@ -20,7 +20,7 @@ with st.sidebar:
     st.title("🛠 Scrappy Panel")
     
     # New Chat Button logic
-    if st.button("➕ New Chat", use_container_width=True):
+    if st.button("New Chat", use_container_width=True):
         new_chat_id = f"Chat {len(st.session_state.all_chats) + 1}"
         st.session_state.all_chats[new_chat_id] = []
         st.session_state.current_chat = new_chat_id
@@ -43,7 +43,7 @@ def get_investigation_results(user_query):
     return st.session_state.orchestrator.investigate(question=user_query)
 
 # --- MAIN INTERFACE ---
-st.title("🛒 Scrappy Market")
+st.title("Scrappy Market")
 st.caption(f"Currently viewing: **{st.session_state.current_chat}** | Engine: Llama 3.2:1b")
 
 # Display historical messages for the selected chat
@@ -91,7 +91,7 @@ if prompt := st.chat_input("Enter your business question here..."):
         st.info(f"Focus areas identified: {', '.join(final_state.get('focus_areas', []))}")
 
         st.markdown("### 📊 Summary")
-        
+        st.write(final_state.get('summary'))
 
     # Save assistant response summary to history
     st.session_state.all_chats[st.session_state.current_chat].append({
