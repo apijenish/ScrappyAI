@@ -75,7 +75,7 @@ class ScrappyAgentPrompt:
 
         original_question = state.get("question")
 
-        return f"""You are an expert MySQL query writer for a retail analytics database.
+        return f"""You are an expert MySQL query writer for a database.
 
 TASK:
 =====
@@ -111,26 +111,69 @@ The query must be a single line with no newlines or indentation:
 
 """        
 
+    def QueryValidateAgentPrompt(state:ScrappyInvestigationState, step:dict):
+
+        label = step.get('label')
+        query = step.get('query')
+        error = step.get('error')
+
+        
+        return f"""You are an expert MySQL query writer for a database.
+
+        Task:
+        =============================
+        The following query is incorrect and produces an error
+
+        Label: {label}
+        query:{query}
+        error:{error}
+
+        Database Schema:
+        ===============================
+        {SCHEMA}
+
+        TASK:
+        ================================ 
+        Regenerate the SQL query that matches the Database Schema.
+        Return a JSON object in exactly this format
+        Do not include any explanation
+        The query must be a single line with no newlines or indentation:
+        {{"label": "{step['label']}", "query": "SELECT ... FROM ... WHERE ..."}}
+        """
+        
+
     def DataRetrievalAgentPrompt(state:ScrappyInvestigationState):
         pass
 
+
     def SummaryAgentPrompt(state: ScrappyInvestigationState):
+
+        # Summarize results — don't dump all raw rows into the prompt
         results_text = ""
         for r in state.get("query_results", []):
-            results_text += f"\n{r['label']}: {len(r['rows'])} rows returned."
-            if r['error']:
-                results_text += f" (Error: {r['error']})"
+            results_text += f"\n- {r['label']}: {len(r['rows'])} rows returned."
+            if r.get('error'):
+                results_text += f" (Failed: {r['error']})"
+            elif r['rows']:
+                # Only send first 5 rows as a sample, not all rows
+                results_text += f"\n  Columns: {r['columns']}"
+                results_text += f"\n  Sample data (first 50 rows): {r['rows'][:50]}"
 
-        return f"""You are a business analyst summarizing data investigation results.
+        return f"""You are a business analyst. Answer the question below using the data provided.
 
-Original question: "{state.get('question')}"
-Data gathered: {results_text}
+IMPORTANT: You must respond with ONLY a JSON object. 
+Do NOT write any code. Do NOT write any explanation outside the JSON.
+Do NOT use markdown. Just the raw JSON object and nothing else.
 
-Return ONLY a JSON object:
+Question: "{state.get('question')}"
+
+Data collected:
+{results_text}
+
+Respond with exactly this JSON structure:
 {{
-    "summary": "2-3 sentence plain English answer to the original question",
+    "summary": "Summarize in plain English answer to the question based on the data",
     "next_steps": ["follow-up action 1", "follow-up action 2"]
 }}"""
-
         
 

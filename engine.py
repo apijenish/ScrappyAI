@@ -5,7 +5,8 @@ from mysql.connector import Error
 
 class ScrappyReasonEngine:
 
-    model_name = "llama3.1"
+    #model_name = "llama3.1"
+    model_name = "mistral-nemo"
     temperature = 0
 
     DB_CONFIG = {
@@ -21,7 +22,7 @@ class ScrappyReasonEngine:
 
     def invoke_llm(self, prompt):
         response = self.llm.invoke(prompt)
-        parsed = self._extract_json(response.content)
+        parsed = self._extract_jsons(response.content)
         return parsed
     
     def execute_sql(self, query:str):
@@ -51,6 +52,28 @@ class ScrappyReasonEngine:
                 text = match.group(1)
         
         return json.loads(text)
+    
+    def _extract_jsons(self, text: str) -> dict:
+        import re
+        text = text.strip()
+
+        # Strip any code block regardless of language label (```json, ```python, ``` etc)
+        if "```" in text:
+            match = re.search(r'```(?:\w+)?\n?(.*?)\n?```', text, re.DOTALL)
+            if match:
+                text = match.group(1).strip()
+
+        # Try to find a JSON object anywhere in the text
+        json_match = re.search(r'\{.*\}', text, re.DOTALL)
+        if json_match:
+            text = json_match.group(0)
+
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as e:
+            print(f"[Engine] JSON parse failed: {e}")
+            print(f"[Engine] Raw LLM output: {text[:300]}")
+            return {}
     
 
 

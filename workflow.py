@@ -14,7 +14,6 @@ def should_retry(state: ScrappyInvestigationState) -> str:
     retry_count = state.get("retry_count", 0)
 
     if errors and retry_count < MAX_RETRIES:
-        state["retry_count"] = retry_count + 1
         print(f"[Workflow] Retrying query builder (attempt {state['retry_count']}/{MAX_RETRIES})")
         return "retry"
     

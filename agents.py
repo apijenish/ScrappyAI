@@ -48,16 +48,19 @@ class ScrappyInvestigationAgent:
     def query_builder_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
 
         print("Query Builder Agent")
-        print("***************************")
-
-        state['generated_queries'] = []
+        print("***************************") 
 
         validation_errors = state.get('validation_errors',[])
 
         if validation_errors:
-            print("there are few errors")
-
+            for step in state.get('validation_errors'):
+                prompt = ScrappyAgentPrompt.QueryValidateAgentPrompt(state, step)
+                result = self.engine.invoke_llm(prompt)
+                state['generated_queries'].append(result)
+            
         else:
+
+            state['generated_queries'] = []
             
             for step in state.get("investigation_steps",[]):           
                 prompt = ScrappyAgentPrompt.QueryBuilderAgentPrompt(state, step)
@@ -68,7 +71,7 @@ class ScrappyInvestigationAgent:
         for sql in state['generated_queries']:
             print(sql)
 
-        print(result)
+        
 
         
         return state
@@ -77,7 +80,8 @@ class ScrappyInvestigationAgent:
         print("Validator Agent")
         print("***************************")
 
-        validation_errors=[]
+        errors=[]
+        passed=[]
 
         for sql_item in state.get('generated_queries',[]):
             query = sql_item.get("query", "")
@@ -86,11 +90,16 @@ class ScrappyInvestigationAgent:
             result = self.engine.execute_sql(query)
 
             if result.get('error'):
-                validation_errors.append({'label':label,
+                errors.append({'label':label,
                                           'query':query,
                                           'error':result.get('error')})
+            else:
+                passed.append(sql_item)
                 
-        state["validation_error"]=validation_errors
+                
+        state['validation_errors'] = errors
+        state['generated_queries'] = passed
+        state["retry_count"] = state.get('retry_count',0) + 1
 
         return state
 
@@ -128,6 +137,9 @@ class ScrappyInvestigationAgent:
 
     def summary_agent(self, state: ScrappyInvestigationState) -> ScrappyInvestigationState:
         prompt = ScrappyAgentPrompt.SummaryAgentPrompt(state)
+
+        print(prompt)
+
         result = self.engine.invoke_llm(prompt)
         state['summary'] = result.get("summary", "No summary available.")
         state['next_steps'] = result.get("next_steps", [])
