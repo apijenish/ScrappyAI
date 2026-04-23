@@ -1,24 +1,74 @@
 from state import ScrappyInvestigationState
 
+# SCHEMA = """
+# SCHEMA:
+# =======
+# Table: stores           → store_id (PK), store_name, city, state, region
+# Table: products         → product_id (PK), product_name, category, brand, price
+# Table: sales_fact       → sale_id (PK), store_id*, product_id*, date_id*, quantity_sold, revenue, cost, profit
+# Table: inventory_snapshots → snapshot_id (PK), store_id*, product_id*, date_id*, inventory_level
+# Table: calendar_dim     → date_id (PK), full_date (DATE), day_of_week, month, quarter, year
+# Table: promotions       → promo_id (PK), product_id*, start_date (DATE), end_date (DATE), discount_pct, campaign_name
+
+# (* = foreign key)
+
+# RELATIONSHIPS:
+# ==============
+# sales_fact.store_id      → stores.store_id
+# sales_fact.product_id    → products.product_id
+# sales_fact.date_id       → calendar_dim.date_id
+# inventory_snapshots.*    → same pattern as sales_fact
+# promotions.product_id    → products.product_id
+# """
+
 SCHEMA = """
-SCHEMA:
+DATABASE CONTEXT:
+=================
+This is a synthetic retail analytics database designed to simulate a simplified retail data
+environment. Its purpose is to support investigation logic, data lineage reasoning, and SQL
+query generation. The schema follows a star-like structure with a central fact table
+(sales_fact) and multiple supporting dimension tables to reflect common retail data patterns.
+
+TABLES:
 =======
-Table: stores           → store_id (PK), store_name, city, state, region
-Table: products         → product_id (PK), product_name, category, brand, price
-Table: sales_fact       → sale_id (PK), store_id*, product_id*, date_id*, quantity_sold, revenue, cost, profit
-Table: inventory_snapshots → snapshot_id (PK), store_id*, product_id*, date_id*, inventory_level
-Table: calendar_dim     → date_id (PK), full_date (DATE), day_of_week, month, quarter, year
-Table: promotions       → promo_id (PK), product_id*, start_date (DATE), end_date (DATE), discount_pct, campaign_name
+Table: stores
+  Purpose : Store-level attributes representing physical retail locations.
+  Columns : store_id (PK), store_name, city, state, region
+
+Table: products
+  Purpose : Product metadata catalogue covering all items sold across stores.
+  Columns : product_id (PK), product_name, category, brand, price
+
+Table: sales_fact  ← CENTRAL FACT TABLE
+  Purpose : Transactional sales data. Central hub linking stores, products, and dates.
+            Use this table as the starting point for any revenue, profit, or volume analysis.
+  Columns : sale_id (PK), store_id*, product_id*, date_id*, quantity_sold, revenue, cost, profit
+
+Table: inventory_snapshots
+  Purpose : Point-in-time inventory levels captured per store, product, and date.
+            Use for stock availability, out-of-stock risk, or replenishment analysis.
+  Columns : snapshot_id (PK), store_id*, product_id*, date_id*, inventory_level
+
+Table: calendar_dim
+  Purpose : Time dimension enabling day, week, weekday, month, and quarter analysis
+            (e.g., Monday sales trends, Q3 comparisons). Always JOIN this table when
+            filtering or grouping by any date attribute.
+  Columns : date_id (PK), full_date (DATE), day_of_week, month, quarter, year
+
+Table: promotions
+  Purpose : Promotional campaigns linked to products over a date range.
+            Use to correlate discount activity with sales spikes or margin changes.
+  Columns : promo_id (PK), product_id*, start_date (DATE), end_date (DATE), discount_pct, campaign_name
 
 (* = foreign key)
 
 RELATIONSHIPS:
 ==============
-sales_fact.store_id      → stores.store_id
-sales_fact.product_id    → products.product_id
-sales_fact.date_id       → calendar_dim.date_id
-inventory_snapshots.*    → same pattern as sales_fact
-promotions.product_id    → products.product_id
+sales_fact.store_id        → stores.store_id
+sales_fact.product_id      → products.product_id
+sales_fact.date_id         → calendar_dim.date_id
+inventory_snapshots.*      → same pattern as sales_fact
+promotions.product_id      → products.product_id
 """
 
 
@@ -161,13 +211,13 @@ The query must be a single line with no newlines or indentation:
 
         return f"""You are a business analyst. Answer the question below using the data provided.
 
-IMPORTANT: You must respond with ONLY a JSON object. 
-Do NOT write any code. Do NOT write any explanation outside the JSON.
-Do NOT use markdown. Just the raw JSON object and nothing else.
+        IMPORTANT: You must respond with ONLY a JSON object. 
+        Do NOT write any code. Do NOT write any explanation outside the JSON.
+        Do NOT use markdown. Just the raw JSON object and nothing else.
 
-Question: "{state.get('question')}"
+        Question: "{state.get('question')}"
 
-Data collected:
+        Data collected:
 {results_text}
 
 Respond with exactly this JSON structure:

@@ -5,8 +5,8 @@ from mysql.connector import Error
 
 class ScrappyReasonEngine:
 
-    #model_name = "llama3.1"
-    model_name = "mistral-nemo"
+    #model_name = "llama3.1" deepseek-coder-v2 llama3.2 mistral-nemo
+    model_name = "gemma4:e2b"
     temperature = 0
 
     DB_CONFIG = {

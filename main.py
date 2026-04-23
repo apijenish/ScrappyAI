@@ -17,7 +17,7 @@ if "current_chat" not in st.session_state:
 
 # --- SIDEBAR: Chat History & Management ---
 with st.sidebar:
-    st.title("Scrappy Panel")
+    st.title("Welcome")
     
     # New Chat Button logic
     if st.button("New Chat", use_container_width=True):
@@ -44,7 +44,7 @@ def get_investigation_results(user_query):
 
 # --- MAIN INTERFACE ---
 st.title("Scrappy Market")
-st.caption(f"Currently viewing: **{st.session_state.current_chat}** | Engine: Llama 3.2:1b")
+st.caption(f"Currently viewing: **{st.session_state.current_chat}**")
 
 # Display historical messages for the selected chat
 for message in st.session_state.all_chats[st.session_state.current_chat]:
