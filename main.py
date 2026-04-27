@@ -1,101 +1,203 @@
 import streamlit as st
-import time
 from orchestrator import ScrappyOrchestrator
 
 # Page configuration for the Scrappy Market UI
-st.set_page_config(page_title="Scrappy Market AI", layout="wide")
+st.set_page_config(page_title="Scrappy Market AI", layout="centered")
+
+# CSS
+st.markdown("""
+<style>
+/* Clean header area */
+.block-container {
+    padding-top: 2rem;
+    max-width: 860px;
+}
+
+/* Softer chat bubbles */
+[data-testid="stChatMessage"] {
+    border-radius: 12px;
+    padding: 4px 8px;
+}
+
+/* Slightly elevated tab bar */
+[data-testid="stTabs"] [role="tablist"] {
+    background-color: #f1f3f9;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+}
+[data-testid="stTabs"] [role="tab"] {
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.88rem;
+}
+
+/* Status widget */
+[data-testid="stStatus"] {
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+/* Code blocks */
+[data-testid="stCodeBlock"] {
+    border-radius: 8px;
+}
+
+/* Info box */
+[data-testid="stAlert"] {
+    border-radius: 8px;
+    font-size: 0.88rem;
+}
+
+/* ── Startup loading animation ── */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.startup-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 0;
+    animation: fade-in 0.4s ease;
+}
+.startup-loader .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #ff4b4b;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 20px;
+}
+.startup-loader .startup-text {
+    font-size: 1rem;
+    color: #6b7280;
+    font-style: italic;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # Initialize the Orchestrator as a session state singleton
+# Show a startup animation only on the very first load
 if "orchestrator" not in st.session_state:
+    splash = st.empty()
+    splash.markdown("""
+    <div class="startup-loader">
+        <div class="spinner"></div>
+        <div class="startup-text">Starting up Scrappy Market…</div>
+    </div>
+    """, unsafe_allow_html=True)
     st.session_state.orchestrator = ScrappyOrchestrator()
+    splash.empty()
 
-# Initialize Session State for multiple chats if not present
-if "all_chats" not in st.session_state:
-    st.session_state.all_chats = {"Chat 1": []}
-if "current_chat" not in st.session_state:
-    st.session_state.current_chat = "Chat 1"
-
-# --- SIDEBAR: Chat History & Management ---
-with st.sidebar:
-    st.title("Welcome")
-    
-    # New Chat Button logic
-    if st.button("New Chat", use_container_width=True):
-        new_chat_id = f"Chat {len(st.session_state.all_chats) + 1}"
-        st.session_state.all_chats[new_chat_id] = []
-        st.session_state.current_chat = new_chat_id
-        st.rerun()
-
-    st.divider()
-    st.subheader("Recent Chats")
-    
-    # Chat Selection Menu
-    for chat_name in list(st.session_state.all_chats.keys()):
-        if st.button(chat_name, key=chat_name, use_container_width=True):
-            st.session_state.current_chat = chat_name
-            st.rerun()
-
-# --- CACHING STRATEGY TO PREVENT TIMEOUTS ---
-# Prevents UI refresh issues when Ollama takes time to respond
-@st.cache_data(show_spinner=False, ttl=1800)
-def get_investigation_results(user_query):
-    """Triggers the LangGraph workflow and caches the result"""
-    return st.session_state.orchestrator.investigate(question=user_query)
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "chat_started" not in st.session_state:
+    st.session_state.chat_started = False    
 
 # --- MAIN INTERFACE ---
 st.title("Scrappy Market")
-st.caption(f"Currently viewing: **{st.session_state.current_chat}**")
+st.caption("Agentic AI System")
+st.divider()
 
-# Display historical messages for the selected chat
-for message in st.session_state.all_chats[st.session_state.current_chat]:
+# Display historical messages
+for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# Greet the user and center the input on a fresh chat
+if not st.session_state.chat_started:
+    st.markdown("""
+    <div style='text-align: center; padding: 40px 0 20px 0;'>
+        <p style='font-size: 1.6rem; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;'>
+            👋 Hi there, Welcome to Scrappy Market
+        </p>
+        <p style='font-size: 1.1rem; color: #6b7280;'>
+            Ask me anything about your retail data or business questions — sales, inventory, promotions, and more.
+        </p>
+        <p style='font-size: 1.1rem; color: #6b7280;'>
+            Example: Show me the total sales revenue for e-bikes at the Atlanta, Athens, and Savannah stores.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("<div style='height: 30vh;'></div>", unsafe_allow_html=True)
+    st.session_state.chat_started = True 
+
 # User Input Section
 if prompt := st.chat_input("Enter your business question here..."):
+    st.markdown("")
     # Add user message to session history
-    st.session_state.all_chats[st.session_state.current_chat].append({"role": "user", "content": prompt})
+    st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
-        st.markdown(prompt)
+          st.markdown(f"<div style='font-size: 1.2rem; display: flex; align-items: center'>{prompt}</div>", unsafe_allow_html=True)
 
     with st.chat_message("assistant"):
         # Real-time status container for agent progression
         with st.status("🔍 AI Agents are investigating...", expanded=False) as status:
             st.write("Phase 1: Analyzing intent and business metrics...")
-            
-            # Executing the cached agent workflow
-            final_state = get_investigation_results(prompt)
-            
+
+            # Run the workflow
+            final_state = st.session_state.orchestrator.investigate(question=prompt)
+
             # Display Intent Agent findings
             st.write(f"✔ **Intent:** {final_state.get('question_type', 'Classified')}")
-            
+
             st.write("Phase 2: Generating investigation plan...")
             # Iterating through steps generated by the Planner Agent
             steps = final_state.get('investigation_steps', [])
             for s in steps:
                 st.write(f"  └─ Action: {s.get('action')}")
-            
+
             st.write("Phase 3: Building optimized SQL queries...")
             st.write(f"✔ **Status:** {len(final_state.get('generated_queries', []))} queries created")
-            
+
             status.update(label="Investigation Complete!", state="complete", expanded=False)
 
         # --- RESULTS DISPLAY ---
-        st.markdown("### 📊 SQL Generated")
-        queries = final_state.get('generated_queries', [])
-        if queries:
-            for q in queries:
-                st.write(q.get('label','No Label'))
-                st.code(q.get('query', '-- No query available'), language="sql")
-        
-        
+        tab_summary, tab_sql = st.tabs(["📝 Summary", "📊 SQL Queries"])
 
-        st.markdown("### 📊 Summary")
-        st.info(f"Focus areas identified: {', '.join(final_state.get('focus_areas', []))}")
-        st.write(final_state.get('summary'))
+        with tab_summary:
+            st.info(f"Focus areas identified: {final_state.get('focus_areas', [])}")
 
-    # Save assistant response summary to history
-    st.session_state.all_chats[st.session_state.current_chat].append({
-        "role": "assistant", 
+            # Summary
+            summary_text = final_state.get('summary', '')
+            st.markdown(f"""
+            <div style='
+                background-color: #f8f9fb;
+                border-left: 5px solid #ff4b4b;
+                border-radius: 0 10px 10px 0;
+                padding: 20px 24px;
+                font-size: 1.2rem;
+                line-height: 1.8;
+                color: #1a1a1a;
+                margin-bottom: 24px;
+            '>{summary_text}</div>
+            """, unsafe_allow_html=True)           
+
+            # Next Steps — visually subordinate
+            next_steps = final_state.get('next_steps', [])
+            if next_steps:
+                st.markdown("<p style='font-size:0.8rem; font-weight:600; color:#9ca3af; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px;'>💡 Recommended Next Steps</p>", unsafe_allow_html=True)
+                for step in next_steps:
+                    st.markdown(f"<p style='font-size:0.88rem; color:#6b7280; margin: 4px 0 4px 12px;'>→ {step}</p>", unsafe_allow_html=True)
+
+        with tab_sql:
+            queries = final_state.get('generated_queries', [])
+            if queries:
+                for q in queries:
+                    st.write(q.get('label', 'No Label'))
+                    st.code(q.get('query', '-- No query available'), language="sql")
+            else:
+                st.write("No queries were generated.")
+
+    # Save assistant response to history
+    st.session_state.messages.append({
+        "role": "assistant",
         "content": "Investigation finished. SQL queries are ready for review."
-    })
+    }) 

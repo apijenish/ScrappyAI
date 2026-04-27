@@ -3,7 +3,6 @@ from prompts import ScrappyAgentPrompt
 from engine import ScrappyReasonEngine
 
 
-
 class ScrappyInvestigationAgent:
 
     def __init__(self):
@@ -11,6 +10,10 @@ class ScrappyInvestigationAgent:
 
     def intent_agent(self, state:ScrappyInvestigationState)-> ScrappyInvestigationState:
         
+        print("\n")
+        print("Intent Agent")
+        print("***************************")
+        print("\n")
         #Get the Intent Agent prompt
         prompt = ScrappyAgentPrompt.IntentAgentPrompt(state)
         result = self.engine.invoke_llm(prompt)
@@ -20,9 +23,6 @@ class ScrappyInvestigationAgent:
         state['metrics_mentioned'] = result.get("metrics_mentioned")
         state['dimensions']=result.get("dimensions")
 
-        print("Intent Agent")
-        print("***************************")
-
         print(state["question_type"])
         print(state["metrics_mentioned"])
         print(state["dimensions"])
@@ -31,14 +31,17 @@ class ScrappyInvestigationAgent:
 
 
     def planner_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
+        
+        print("\n")
+        print("Planner Agent")
+        print("***************************")
+        print("\n")
+
         prompt = ScrappyAgentPrompt.PlannerAgentPrompt(state)
         result = self.engine.invoke_llm(prompt)
 
         state['investigation_steps']=result.get("investigation_steps")
         state['focus_areas']=result.get("focus_areas")
-
-        print("Planner Agent")
-        print("***************************")
 
         print(state["investigation_steps"])
         print(state["focus_areas"])
@@ -47,14 +50,16 @@ class ScrappyInvestigationAgent:
 
     def query_builder_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
 
+        print("\n")
         print("Query Builder Agent")
-        print("***************************") 
+        print("***************************")
+        print("\n") 
 
         validation_errors = state.get('validation_errors',[])
 
         if validation_errors:
-            for step in state.get('validation_errors'):
-                prompt = ScrappyAgentPrompt.QueryValidateAgentPrompt(state, step)
+            for failed_query in state.get('validation_errors'):
+                prompt = ScrappyAgentPrompt.QueryValidateAgentPrompt(state, failed_query)
                 result = self.engine.invoke_llm(prompt)
                 state['generated_queries'].append(result)
             
@@ -62,8 +67,8 @@ class ScrappyInvestigationAgent:
 
             state['generated_queries'] = []
             
-            for step in state.get("investigation_steps",[]):           
-                prompt = ScrappyAgentPrompt.QueryBuilderAgentPrompt(state, step)
+            for passed_query in state.get("investigation_steps",[]):           
+                prompt = ScrappyAgentPrompt.QueryBuilderAgentPrompt(state, passed_query)
                 result = self.engine.invoke_llm(prompt)
                 state['generated_queries'].append(result)
 
@@ -71,14 +76,15 @@ class ScrappyInvestigationAgent:
         for sql in state['generated_queries']:
             print(sql)
 
-        
-
-        
         return state
+
     
     def validator_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
+        
+        print("\n")
         print("Validator Agent")
         print("***************************")
+        print("\n")
 
         errors=[]
         passed=[]
@@ -89,13 +95,14 @@ class ScrappyInvestigationAgent:
 
             result = self.engine.execute_sql(query)
 
-            if result.get('error'):
+            if result.get('error') or len(result.get('rows', [])) == 0:
                 errors.append({'label':label,
                                           'query':query,
                                           'error':result.get('error')})
             else:
                 passed.append(sql_item)
-                
+        if len(errors)>0:
+            print("Failed queries found")        
                 
         state['validation_errors'] = errors
         state['generated_queries'] = passed
@@ -106,9 +113,11 @@ class ScrappyInvestigationAgent:
 
     def data_retrieval_agent(self, state:ScrappyInvestigationState)->ScrappyInvestigationState:
 
+        print("\n")
         print("Data Retrieval Agent")
-
         print("***************************")
+        print("\n")
+
         query_results = []
 
         for sql_item in state.get('generated_queries', []):
@@ -136,12 +145,16 @@ class ScrappyInvestigationAgent:
         return state
 
     def summary_agent(self, state: ScrappyInvestigationState) -> ScrappyInvestigationState:
+
+        print("\n")
+        print("Summary Agent")
+        print("***************************")
+        print("\n")
+
         prompt = ScrappyAgentPrompt.SummaryAgentPrompt(state)
-
-        print(prompt)
-
         result = self.engine.invoke_llm(prompt)
-        state['summary'] = result.get("summary", "No summary available.")
+        state['summary'] = ScrappyReasonEngine.escape_markdown(result.get("summary", "No summary available."))
+        print(result.get("summary"))
         state['next_steps'] = result.get("next_steps", [])
         return state
 

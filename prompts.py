@@ -1,79 +1,107 @@
 from state import ScrappyInvestigationState
 
-# SCHEMA = """
-# SCHEMA:
-# =======
-# Table: stores           → store_id (PK), store_name, city, state, region
-# Table: products         → product_id (PK), product_name, category, brand, price
-# Table: sales_fact       → sale_id (PK), store_id*, product_id*, date_id*, quantity_sold, revenue, cost, profit
-# Table: inventory_snapshots → snapshot_id (PK), store_id*, product_id*, date_id*, inventory_level
-# Table: calendar_dim     → date_id (PK), full_date (DATE), day_of_week, month, quarter, year
-# Table: promotions       → promo_id (PK), product_id*, start_date (DATE), end_date (DATE), discount_pct, campaign_name
-
-# (* = foreign key)
-
-# RELATIONSHIPS:
-# ==============
-# sales_fact.store_id      → stores.store_id
-# sales_fact.product_id    → products.product_id
-# sales_fact.date_id       → calendar_dim.date_id
-# inventory_snapshots.*    → same pattern as sales_fact
-# promotions.product_id    → products.product_id
-# """
-
 SCHEMA = """
 DATABASE CONTEXT:
 =================
-This is a synthetic retail analytics database designed to simulate a simplified retail data
-environment. Its purpose is to support investigation logic, data lineage reasoning, and SQL
-query generation. The schema follows a star-like structure with a central fact table
-(sales_fact) and multiple supporting dimension tables to reflect common retail data patterns.
+Synthetic retail analytics database. Star schema with sales_fact as the central fact table.
+All date filtering MUST go through calendar_dim via date_id — there are no raw DATE columns
+in the fact or junction tables (except calendar_dim.full_date itself).
 
 TABLES:
 =======
-Table: stores
-  Purpose : Store-level attributes representing physical retail locations.
-  Columns : store_id (PK), store_name, city, state, region
-
-Table: products
-  Purpose : Product metadata catalogue covering all items sold across stores.
-  Columns : product_id (PK), product_name, category, brand, price
-
-Table: sales_fact  ← CENTRAL FACT TABLE
-  Purpose : Transactional sales data. Central hub linking stores, products, and dates.
-            Use this table as the starting point for any revenue, profit, or volume analysis.
-  Columns : sale_id (PK), store_id*, product_id*, date_id*, quantity_sold, revenue, cost, profit
-
-Table: inventory_snapshots
-  Purpose : Point-in-time inventory levels captured per store, product, and date.
-            Use for stock availability, out-of-stock risk, or replenishment analysis.
-  Columns : snapshot_id (PK), store_id*, product_id*, date_id*, inventory_level
 
 Table: calendar_dim
-  Purpose : Time dimension enabling day, week, weekday, month, and quarter analysis
-            (e.g., Monday sales trends, Q3 comparisons). Always JOIN this table when
-            filtering or grouping by any date attribute.
-  Columns : date_id (PK), full_date (DATE), day_of_week, month, quarter, year
+  Purpose : Time dimension. Always JOIN this table when filtering or grouping by any date attribute.
+  Columns :
+    date_id      INT          PRIMARY KEY
+    full_date    DATE         Actual calendar date — use for date range filters: full_date BETWEEN '2025-01-01' AND '2025-03-31'
+    day_of_week  VARCHAR(20)  e.g. 'Monday', 'Tuesday'
+    month        INT          Numeric month 1-12. Use month = 5 for May, NOT month = 'May'
+    quarter      INT          Numeric quarter 1-4
+    year         INT          Four-digit year e.g. 2025
+
+Table: stores
+  Purpose : Physical retail location attributes.
+  Columns :
+    store_id     INT          PRIMARY KEY
+    store_name   VARCHAR(255)
+    city         VARCHAR(100)
+    state        VARCHAR(100)
+    region       VARCHAR(100)
+
+Table: products
+  Purpose : Product metadata catalogue for all items sold.
+  Columns :
+    product_id   INT           PRIMARY KEY
+    product_name VARCHAR(255)
+    category     VARCHAR(100)
+    brand        VARCHAR(100)
+    price        DECIMAL(10,2) List price of the product
+
+Table: sales_fact  ← CENTRAL FACT TABLE
+  Purpose : Transactional sales records. Start every revenue, profit, or volume query here.
+  Columns :
+    sale_id       INT           PRIMARY KEY
+    store_id      INT           FK → stores.store_id
+    product_id    INT           FK → products.product_id
+    date_id       INT           FK → calendar_dim.date_id
+    quantity_sold INT
+    revenue       DECIMAL(12,2)
+    cost          DECIMAL(12,2)
+    profit        DECIMAL(12,2) Pre-computed: revenue - cost
+
+Table: inventory_snapshots
+  Purpose : Point-in-time inventory levels per store, product, and date.
+            Use for stock availability, out-of-stock risk, or replenishment analysis.
+  Columns :
+    snapshot_id     INT  PRIMARY KEY
+    store_id        INT  FK → stores.store_id
+    product_id      INT  FK → products.product_id
+    date_id         INT  FK → calendar_dim.date_id
+    inventory_level INT
 
 Table: promotions
   Purpose : Promotional campaigns linked to products over a date range.
             Use to correlate discount activity with sales spikes or margin changes.
-  Columns : promo_id (PK), product_id*, start_date (DATE), end_date (DATE), discount_pct, campaign_name
+  Columns :
+    promo_id      INT           PRIMARY KEY
+    product_id    INT           FK → products.product_id
+    start_date_id INT           FK → calendar_dim.date_id (start of promotion window)
+    end_date_id   INT           FK → calendar_dim.date_id (end of promotion window)
+    discount_pct  DECIMAL(5,2)  e.g. 15.00 means 15% discount
+    campaign_name VARCHAR(255)
 
-(* = foreign key)
+   promotions has NO direct DATE columns. To filter by date range, JOIN calendar_dim twice:
+    JOIN calendar_dim cd_start ON promotions.start_date_id = cd_start.date_id
+    JOIN calendar_dim cd_end   ON promotions.end_date_id   = cd_end.date_id
 
 RELATIONSHIPS:
 ==============
-sales_fact.store_id        → stores.store_id
-sales_fact.product_id      → products.product_id
-sales_fact.date_id         → calendar_dim.date_id
-inventory_snapshots.*      → same pattern as sales_fact
-promotions.product_id      → products.product_id
+sales_fact.store_id            → stores.store_id
+sales_fact.product_id          → products.product_id
+sales_fact.date_id             → calendar_dim.date_id
+inventory_snapshots.store_id   → stores.store_id
+inventory_snapshots.product_id → products.product_id
+inventory_snapshots.date_id    → calendar_dim.date_id
+promotions.product_id          → products.product_id
+promotions.start_date_id       → calendar_dim.date_id
+promotions.end_date_id         → calendar_dim.date_id
+
+QUERY RULES (always follow):
+=============================
+- Filter by month using integers:   c.month = 5        (not 'May')
+- Filter by day name using strings: c.day_of_week = 'Monday'
+- Filter by date range using:       c.full_date BETWEEN '2025-01-01' AND '2025-12-31'
+- promotions date filtering REQUIRES two calendar_dim JOINs (see alias pattern above)
+- Always alias aggregates:          SUM(revenue) AS total_revenue
+- Always ORDER BY for ranked results, LIMIT 500 unless all rows are explicitly needed
+- No semicolons at end of query
 """
 
 
 class ScrappyAgentPrompt:
 
+    @staticmethod
     def IntentAgentPrompt(state:ScrappyInvestigationState):
 
         question = state['question']
@@ -94,6 +122,7 @@ class ScrappyAgentPrompt:
         }}
         """
 
+    @staticmethod
     def PlannerAgentPrompt(state:ScrappyInvestigationState):
 
         state = state
@@ -105,7 +134,7 @@ class ScrappyAgentPrompt:
         Metrics: {state['metrics_mentioned']}
         Dimensions: {state['dimensions']}
 
-        Generate 1 logical investigation steps that progressively drill deeper into the problem.
+        Generate 2-3 logical investigation steps that progressively drill deeper into the problem.
         Each step should build on the previous one.
 
         Return ONLY a JSON object with these fields:
@@ -121,6 +150,7 @@ class ScrappyAgentPrompt:
             "focus_areas": "list of specific dimensions or patterns worth investigating"
         }}"""
     
+    @staticmethod
     def QueryBuilderAgentPrompt(state:ScrappyInvestigationState, step:dict):
 
         original_question = state.get("question")
@@ -148,7 +178,7 @@ QUERY RULES:
 - Always alias aggregated columns: SUM(revenue) AS total_revenue
 - Prefer JOINs over subqueries for readability
 - Add ORDER BY for any ranked or trended results
-- LIMIT 50 rows unless the step explicitly needs all rows
+- LIMIT 500 rows unless the step explicitly needs all rows
 - No semicolons at the end
 
 {SCHEMA}
@@ -161,68 +191,75 @@ The query must be a single line with no newlines or indentation:
 
 """        
 
-    def QueryValidateAgentPrompt(state:ScrappyInvestigationState, step:dict):
-
+    @staticmethod
+    def QueryValidateAgentPrompt(state: ScrappyInvestigationState, step: dict):
         label = step.get('label')
         query = step.get('query')
         error = step.get('error')
 
-        
-        return f"""You are an expert MySQL query writer for a database.
+        return f"""You are an expert MySQL query writer.
 
-        Task:
-        =============================
-        The following query is incorrect and produces an error
+    THE FOLLOWING QUERY FAILED — DO NOT reproduce it:
+    ==================================================
+    Label : {label}
+    Query : {query}
+    Error : {error}
 
-        Label: {label}
-        query:{query}
-        error:{error}
+    Your job is to write a DIFFERENT, corrected query that fixes the error above.
+    Do NOT copy the original query. Rewrite it from scratch using the schema below.
 
-        Database Schema:
-        ===============================
-        {SCHEMA}
+    Before writing the query, identify:
+    1. What specifically caused the error
+    2. Which table or column name is wrong or missing
+    3. What the correct fix is
 
-        TASK:
-        ================================ 
-        Regenerate the SQL query that matches the Database Schema.
-        Return a JSON object in exactly this format
-        Do not include any explanation
-        The query must be a single line with no newlines or indentation:
-        {{"label": "{step['label']}", "query": "SELECT ... FROM ... WHERE ..."}}
-        """
+    {SCHEMA}
+
+    Return ONLY a JSON object. No explanation. Query must be a single line:
+    {{"label": "{label}", "query": "SELECT ... FROM ... WHERE ..."}}
+    """
         
 
+    @staticmethod
     def DataRetrievalAgentPrompt(state:ScrappyInvestigationState):
-        pass
+        pass # Data retrieval is handled directly in the agent; no LLM prompt needed
 
 
+    @staticmethod
     def SummaryAgentPrompt(state: ScrappyInvestigationState):
 
         # Summarize results — don't dump all raw rows into the prompt
         results_text = ""
-        for r in state.get("query_results", []):
+        for r in state.get("query_results", []): 
             results_text += f"\n- {r['label']}: {len(r['rows'])} rows returned."
             if r.get('error'):
                 results_text += f" (Failed: {r['error']})"
             elif r['rows']:
-                # Only send first 5 rows as a sample, not all rows
+                # Only send first 1000 rows as a sample, not all rows
                 results_text += f"\n  Columns: {r['columns']}"
-                results_text += f"\n  Sample data (first 50 rows): {r['rows'][:50]}"
+                results_text += f"\n  Sample data (first 1000 rows): {r['rows'][:1000]}"
 
-        return f"""You are a business analyst. Answer the question below using the data provided.
+        return f"""You are an expert business analyst. You have years worth of operational and sales experience. Answer the question below using the data provided.
 
-        IMPORTANT: You must respond with ONLY a JSON object. 
-        Do NOT write any code. Do NOT write any explanation outside the JSON.
-        Do NOT use markdown. Just the raw JSON object and nothing else.
+IMPORTANT: You must respond with ONLY a JSON object. 
+Do NOT write any code. Do NOT write any explanation outside the JSON.
+Do NOT use markdown. Just the raw JSON object and nothing else.
 
-        Question: "{state.get('question')}"
+FORMATTING RULES (always follow):
+- All monetary values must include a dollar sign: $3,461,976.88 not 3,461,976.88
+- All percentages must include a percent sign: 12.5% not 12.5
+- All quantities must include a unit: 1,200 units not 1,200
+- Round monetary values to 2 decimal places
+- Use commas as thousands separators
 
-        Data collected:
+Question: "{state.get('question')}"
+
+Data collected:
 {results_text}
 
 Respond with exactly this JSON structure:
 {{
-    "summary": "Summarize in plain English answer to the question based on the data",
+    "summary": "Summarize in plain English answer to the question based on the data in few sentences. Always include $ for money, % for percentages, and appropriate units for quantities.",
     "next_steps": ["follow-up action 1", "follow-up action 2"]
 }}"""
         

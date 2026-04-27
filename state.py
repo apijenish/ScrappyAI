@@ -22,7 +22,7 @@ class ScrappyInvestigationState(TypedDict):
     
     # Query Builder outputs
     generated_queries: NotRequired[list[dict]]  # Accumulate queries
-    sql_query:NotRequired[list[str]]
+
 
     # Validator output
     retry_count:NotRequired[int]
@@ -38,6 +38,6 @@ class ScrappyInvestigationState(TypedDict):
     # Metadata
     messages: NotRequired[Annotated[list, operator.add]]  # Conversation history
     current_agent: NotRequired[str]
-    notebook:NotRequired[str]
+
 
 
