@@ -1,3 +1,6 @@
+# This code has two responsibilities. Invoke the LLM and Execute the SQL
+# All agents share a single instance of ScrappyReasonEngine
+
 from langchain_ollama import ChatOllama
 import json
 import mysql.connector
@@ -7,10 +10,11 @@ import re
 
 class ScrappyReasonEngine:
 
-    #model_name = "llama3.1" deepseek-coder-v2 llama3.2 mistral-nemo
-    model_name = "gemma4:31b-cloud"
+    # LLM Configuration
+    model_name = os.environ.get("LLM_MODEL")
     temperature = 0
 
+    # DB Configuration
     DB_CONFIG = {
         "host": os.environ.get("DB_HOST"),
         "port": os.environ.get("DB_PORT"),
@@ -19,6 +23,7 @@ class ScrappyReasonEngine:
         "password": os.environ.get("DB_PASSWORD"),
     }
 
+    # Initialises the ChatOllama client.
     def __init__(self):
         self.llm = ChatOllama(
             model=self.model_name,
@@ -32,11 +37,13 @@ class ScrappyReasonEngine:
             }
         )
 
+    # Send a prompt to the LLM and return the parsed JSON response
     def invoke_llm(self, prompt):
         response = self.llm.invoke(prompt)
         parsed = self._extract_jsons(response.content)
         return parsed
     
+    # Execute a single SELECT query
     def execute_sql(self, query:str):
         try:
             conn = mysql.connector.connect(**self.DB_CONFIG)
@@ -51,55 +58,7 @@ class ScrappyReasonEngine:
             return {"columns": [], "rows": [], "error": str(e)}
 
 
-    # Helper methods
-    # def _extract_jsons(self, text: str) -> dict:
-
-    #     text = text.strip()
-
-    #     # 1. Strip markdown code blocks (```json, ```python, ``` etc.)
-    #     if "```" in text:
-    #         match = re.search(r'```(?:\w+)?\n?(.*?)\n?```', text, re.DOTALL)
-    #         if match:
-    #             text = match.group(1).strip()
-
-    #     # 2. Try to isolate a complete JSON object {...}
-    #     json_match = re.search(r'\{.*\}', text, re.DOTALL)
-    #     if json_match:
-    #         text = json_match.group(0)
-    #     else:
-    #         # 3. No closing brace found — LLM truncated the output.
-    #         #    Find the opening brace and take everything from there.
-    #         open_idx = text.find('{')
-    #         if open_idx != -1:
-    #             text = text[open_idx:]
-
-    #     # 4. First attempt: parse as-is
-    #     try:
-    #         return json.loads(text)
-    #     except json.JSONDecodeError:
-    #         pass
-
-    #     # 5. Recovery: try closing any open brackets/braces to salvage truncated JSON.
-    #     #    Strip trailing commas (common when truncated mid-field), then close structures.
-    #     recovered = text.rstrip().rstrip(',')
-
-    #     # Count unclosed brackets and braces
-    #     open_braces   = recovered.count('{') - recovered.count('}')
-    #     open_brackets = recovered.count('[') - recovered.count(']')
-
-    #     # Close any open arrays first, then objects
-    #     recovered += ']' * max(open_brackets, 0)
-    #     recovered += '}' * max(open_braces, 0)
-
-    #     try:
-    #         result = json.loads(recovered)
-    #         print(f"[Engine] Recovered truncated JSON successfully.")
-    #         return result
-    #     except json.JSONDecodeError as e:
-    #         print(f"[Engine] JSON parse failed after recovery attempt: {e}")
-    #         print(f"[Engine] Raw LLM output:\n{text[:400]}")
-    #         return {}
-    
+    # Private Helper methods       
     def _extract_jsons(self, text: str) -> dict:
         text = text.strip()
 
@@ -151,7 +110,7 @@ class ScrappyReasonEngine:
     @staticmethod
     def escape_markdown(text: str) -> str:
         """Escape characters that Streamlit/Markdown would misinterpret"""
-        text = text.replace("$", r"$")   # Prevent LaTeX math rendering
-        text = text.replace("_", r"_")   # Prevent italic rendering
+        text = text.replace("$", r"$")
+        text = text.replace("_", r"_")
         return text
 
