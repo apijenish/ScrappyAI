@@ -113,7 +113,7 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
   - **Agent Framework**: LangGraph
   - **Frontend**: Streamlit
   - **Database**: MySQL
-  - **LLM Engine**: Ollama
+  - **LLM Engine**: Gemma 4
   - **Version Control**: Github
  
 ---
@@ -128,7 +128,7 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
 
 ### Quick Start
 
----
+
 
 ## Usage
 
@@ -160,14 +160,17 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
 
 ### Milestone Schedule
 
-| Milestone | Data | Deliverables |
-| ** Milestone 1** | February 17, 2026| Requirements and design documentation |
-| **Milestone 2** | March 17, 2026 | Core agent development and integration |
-| **Milestone 3** | April 14, 2026 | Full system integraion and final documentation |
+| Milestone        | Date              | Deliverables                                   |
+|------------------|-------------------|------------------------------------------------|
+| **Milestone 1**  | February 20, 2026 | Requirements and design documentation          |
+| **Milestone 2**  | April 3, 2026    | Core agent development and integration         |
+| **Milestone 3**  | May 1, 2026    | Full system integration and final documentation |
+
 
 ### Team Structure 
 - 1 Project Manager
-- 4 Development Engineers
+- 1 Product Manager
+- 3 Development Engineers
 - Bi-weekly mentor meeting for guidance
 - Weekly team meeting
 
@@ -181,12 +184,12 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
 
 ## Future Enhancements
 We have the following features planned for future releases:
-- **Query Optimization Agent** to improve SQL query performance
+- **Query Optimization and Complexity** to improve SQL query joins
 - **Data Visualization Agent** to automate chart and graph generation
-- **User Authentixation** through role-based access control
+- **Security and Role-Based Access Control** through robust role-based access control
 - **Export Functionality** to options such as CSV, Excel, and PDF
-- **Natural Language Insights** with auomated summaries and recommendations
 - **Real-Time Data Integration** with live data source connections
+- **Expansion of Knowledge Base** to agents to reference internal or external data
 - **Machine Learning** by learning from query patterns to improve accuracy
 - **Scheduled Reports** by auomating query execution and email delivery
 - **Mobile Interface** by developing a responsive design for tablets and phones
