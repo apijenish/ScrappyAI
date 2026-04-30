@@ -1,14 +1,15 @@
+# entry point that bridges the Streamlit UI and the LangGraph workflow
+
 from langchain_core.messages import HumanMessage
 from workflow import create_workflow
 
 
 class ScrappyOrchestrator:
-    
+    # Compile the LangGraph workflow once when the orchestrator is created
     def __init__(self):
         self.graph = create_workflow()
 
-    def investigate(self, question:str)->dict:
-        
+    def investigate(self, question:str)->dict:       
         #Initialize the state
         initial_state = {
             "question":question,

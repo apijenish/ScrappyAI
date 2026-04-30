@@ -1,3 +1,5 @@
+# every LLM prompt used by ScrappyAI's agents.
+
 from state import ScrappyInvestigationState
 
 SCHEMA = """
@@ -98,7 +100,6 @@ QUERY RULES (always follow):
 - No semicolons at end of query
 """
 
-
 class ScrappyAgentPrompt:
 
     @staticmethod
@@ -157,39 +158,39 @@ class ScrappyAgentPrompt:
 
         return f"""You are an expert MySQL query writer for a database.
 
-TASK:
-=====
-Write exactly ONE MySQL SELECT query to accomplish this investigation step.
+        TASK:
+        =====
+        Write exactly ONE MySQL SELECT query to accomplish this investigation step.
 
-Step label : {step['label']}
-Step action: {step['action']}
-Step why   : {step['why']}
+        Step label : {step['label']}
+        Step action: {step['action']}
+        Step why   : {step['why']}
 
-CONTEXT:
-========
-Original question  : "{original_question}"
-Metrics of interest: {state.get('metrics_mentioned')}
-Dimensions         : {state.get('dimensions')}
+        CONTEXT:
+        ========
+        Original question  : "{original_question}"
+        Metrics of interest: {state.get('metrics_mentioned')}
+        Dimensions         : {state.get('dimensions')}
 
-QUERY RULES:
-============
-- Valid MySQL only — use CURDATE(), DATE_SUB(), DATEDIFF() for date math
-- Always JOIN calendar_dim for any date filtering (join on date_id)
-- Always alias aggregated columns: SUM(revenue) AS total_revenue
-- Prefer JOINs over subqueries for readability
-- Add ORDER BY for any ranked or trended results
-- LIMIT 500 rows unless the step explicitly needs all rows
-- No semicolons at the end
+        QUERY RULES:
+        ============
+        - Valid MySQL only — use CURDATE(), DATE_SUB(), DATEDIFF() for date math
+        - Always JOIN calendar_dim for any date filtering (join on date_id)
+        - Always alias aggregated columns: SUM(revenue) AS total_revenue
+        - Prefer JOINs over subqueries for readability
+        - Add ORDER BY for any ranked or trended results
+        - LIMIT 500 rows unless the step explicitly needs all rows
+        - No semicolons at the end
 
-{SCHEMA}
+        {SCHEMA}
 
-Return a JSON object in exactly this format
-Do not include any explanation
-The query must be a single line with no newlines or indentation:
+        Return a JSON object in exactly this format
+        Do not include any explanation
+        The query must be a single line with no newlines or indentation:
 
-{{"label": "{step['label']}", "query": "SELECT ... FROM ... WHERE ..."}}
+        {{"label": "{step['label']}", "query": "SELECT ... FROM ... WHERE ..."}}
 
-"""        
+        """        
 
     @staticmethod
     def QueryValidateAgentPrompt(state: ScrappyInvestigationState, step: dict):
@@ -199,25 +200,25 @@ The query must be a single line with no newlines or indentation:
 
         return f"""You are an expert MySQL query writer.
 
-    THE FOLLOWING QUERY FAILED — DO NOT reproduce it:
-    ==================================================
-    Label : {label}
-    Query : {query}
-    Error : {error}
+        THE FOLLOWING QUERY FAILED — DO NOT reproduce it:
+        ==================================================
+        Label : {label}
+        Query : {query}
+        Error : {error}
 
-    Your job is to write a DIFFERENT, corrected query that fixes the error above.
-    Do NOT copy the original query. Rewrite it from scratch using the schema below.
+        Your job is to write a DIFFERENT, corrected query that fixes the error above.
+        Do NOT copy the original query. Rewrite it from scratch using the schema below.
 
-    Before writing the query, identify:
-    1. What specifically caused the error
-    2. Which table or column name is wrong or missing
-    3. What the correct fix is
+        Before writing the query, identify:
+        1. What specifically caused the error
+        2. Which table or column name is wrong or missing
+        3. What the correct fix is
 
-    {SCHEMA}
+        {SCHEMA}
 
-    Return ONLY a JSON object. No explanation. Query must be a single line:
-    {{"label": "{label}", "query": "SELECT ... FROM ... WHERE ..."}}
-    """
+        Return ONLY a JSON object. No explanation. Query must be a single line:
+        {{"label": "{label}", "query": "SELECT ... FROM ... WHERE ..."}}
+        """
         
 
     @staticmethod
@@ -228,7 +229,7 @@ The query must be a single line with no newlines or indentation:
     @staticmethod
     def SummaryAgentPrompt(state: ScrappyInvestigationState):
 
-        # Summarize results — don't dump all raw rows into the prompt
+        # Summarize results
         results_text = ""
         for r in state.get("query_results", []): 
             results_text += f"\n- {r['label']}: {len(r['rows'])} rows returned."
@@ -241,26 +242,26 @@ The query must be a single line with no newlines or indentation:
 
         return f"""You are an expert business analyst. You have years worth of operational and sales experience. Answer the question below using the data provided.
 
-IMPORTANT: You must respond with ONLY a JSON object. 
-Do NOT write any code. Do NOT write any explanation outside the JSON.
-Do NOT use markdown. Just the raw JSON object and nothing else.
+        IMPORTANT: You must respond with ONLY a JSON object. 
+        Do NOT write any code. Do NOT write any explanation outside the JSON.
+        Do NOT use markdown. Just the raw JSON object and nothing else.
 
-FORMATTING RULES (always follow):
-- All monetary values must include a dollar sign: $3,461,976.88 not 3,461,976.88
-- All percentages must include a percent sign: 12.5% not 12.5
-- All quantities must include a unit: 1,200 units not 1,200
-- Round monetary values to 2 decimal places
-- Use commas as thousands separators
+        FORMATTING RULES (always follow):
+        - All monetary values must include a dollar sign: $3,461,976.88 not 3,461,976.88
+        - All percentages must include a percent sign: 12.5% not 12.5
+        - All quantities must include a unit: 1,200 units not 1,200
+        - Round monetary values to 2 decimal places
+        - Use commas as thousands separators
 
-Question: "{state.get('question')}"
+        Question: "{state.get('question')}"
 
-Data collected:
-{results_text}
+        Data collected:
+        {results_text}
 
-Respond with exactly this JSON structure:
-{{
-    "summary": "Summarize in plain English answer to the question based on the data in few sentences. Always include $ for money, % for percentages, and appropriate units for quantities.",
-    "next_steps": ["follow-up action 1", "follow-up action 2"]
-}}"""
+        Respond with exactly this JSON structure:
+        {{
+            "summary": "Summarize in plain English answer to the question based on the data in few sentences. Always include $ for money, % for percentages, and appropriate units for quantities.",
+            "next_steps": ["follow-up action 1", "follow-up action 2"]
+        }}"""
         
 

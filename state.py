@@ -1,12 +1,11 @@
+
+# State that flows through the entire agent workflow
+# Each agent can read from and write to this state
+
 from typing_extensions import TypedDict, NotRequired, Annotated
 import operator
 
 class ScrappyInvestigationState(TypedDict):
-
-    """
-    State that flows through the entire agent workflow
-    Each agent can read from and write to this state
-    """
 
     #User Input
     question: str
@@ -22,7 +21,6 @@ class ScrappyInvestigationState(TypedDict):
     
     # Query Builder outputs
     generated_queries: NotRequired[list[dict]]  # Accumulate queries
-
 
     # Validator output
     retry_count:NotRequired[int]

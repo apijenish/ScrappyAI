@@ -62,13 +62,13 @@ class ScrappyReasonEngine:
     def _extract_jsons(self, text: str) -> dict:
         text = text.strip()
 
-        # 1. Strip markdown code blocks
+        # Strip markdown code blocks
         if "```" in text:
             match = re.search(r'```(?:\w+)?\n?(.*?)\n?```', text, re.DOTALL)
             if match:
                 text = match.group(1).strip()
 
-        # 2. Find the first COMPLETE JSON object using bracket counting
+        # Find the first COMPLETE JSON object using bracket counting
         start = text.find('{')
         if start == -1:
             print("[Engine] No JSON object found in LLM output.")
@@ -106,7 +106,7 @@ class ScrappyReasonEngine:
         print("[Engine] Could not find a complete JSON object.")
         return {}
 
-    #Format the summary output to plain english
+    # Format the summary output to plain english
     @staticmethod
     def escape_markdown(text: str) -> str:
         """Escape characters that Streamlit/Markdown would misinterpret"""
