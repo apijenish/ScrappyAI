@@ -176,12 +176,6 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
 
 ---
 
-## Testing 
-
-### Running Test
-
----
-
 ## Future Enhancements
 We have the following features planned for future releases:
 - **Query Optimization and Complexity** to improve SQL query joins
