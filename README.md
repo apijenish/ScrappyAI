@@ -113,7 +113,7 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
   - **Agent Framework**: LangGraph
   - **Frontend**: Streamlit
   - **Database**: MySQL
-  - **LLM Engine**: Ollama
+  - **LLM Engine**: gemma4:31b-cloud via Ollama cloud API
   - **Version Control**: Github
  
 ---
@@ -127,13 +127,32 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
 - pip (Python package manager)
 
 ### Quick Start
+1. Clone the repository
 
+- git clone https://github.com/your-org/scrappy-market.git
+- cd scrappy-market
+
+2. Install dependencies
+- pip install -r requirements.txt
+
+3. Configure environment variables
+- Create a .evn file in the project root with your database and Ollama API key
+  DB_HOST=your_database_host
+  DB_PORT=3306
+  DB_NAME=your_database_name
+  DB_USER=your_database_user
+  DB_PASSWORD=your_database_password
+  OLLAMA_API_KEY=your_ollama_api_key
+
+4. Create the database tables using the SQL files inside the Tables folder
 ---
 
 ## Usage
 
 ### Starting a Query Session
 
+- Launch the application
+  python -m streamlit run main.py
 ---
 
 ## Technical Requirements

@@ -239,6 +239,8 @@ class ScrappyAgentPrompt:
                 # Only send first 1000 rows as a sample, not all rows
                 results_text += f"\n  Columns: {r['columns']}"
                 results_text += f"\n  Sample data (first 1000 rows): {r['rows'][:1000]}"
+        if not results_text:
+            results_text = "No SQL queries could be generated. Please try again"        
 
         return f"""You are an expert business analyst. You have years worth of operational and sales experience. Answer the question below using the data provided.
 
