@@ -136,7 +136,7 @@ The Scrappy Market Agentic AI System is a multi-agent framework that:
 - pip install -r requirements.txt
 
 3. Configure environment variables
-- Create a .evn file in the project root with your database and Ollama API key
+- Create a .evn file in the project root with your database and Ollama API key\n
   DB_HOST=your_database_host
   DB_PORT=3306
   DB_NAME=your_database_name
